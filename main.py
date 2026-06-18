@@ -1,11 +1,9 @@
 """
-POC entry point: audio file in -> transcript + structured analysis report out.
+POC entry point: audio file + job role in -> transcript + structured
+evaluation report out.
 
 Usage:
-    python main.py path/to/answer.mp3
-    python main.py path/to/answer.mp3 --question "Tell me about a time you debugged a tricky production issue" \
-        --expected "A strong answer identifies the problem, the diagnostic steps taken, the fix, and the outcome/impact." \
-        --out report.json
+    python main.py path/to/answer.mp3 --job-role "Python Developer"
 """
 
 import argparse
@@ -18,8 +16,7 @@ from analyze import analyze_transcript
 def main():
     parser = argparse.ArgumentParser(description="AI Interview Platform - Transcription + Analysis POC")
     parser.add_argument("audio_path", help="Path to interview audio/video file (mp3, wav, m4a, mp4, etc.)")
-    parser.add_argument("--question", default=None, help="The interview question asked (optional, improves scoring)")
-    parser.add_argument("--expected", default=None, help="Expected/reference answer text (optional, improves scoring)")
+    parser.add_argument("--job-role", required=True, help='Job role being interviewed for, e.g. "DevOps Engineer"')
     parser.add_argument("--model-size", default="small", help="Faster-Whisper model size (tiny/base/small/medium/large-v3)")
     parser.add_argument("--out", default="report.json", help="Output report path")
     args = parser.parse_args()
@@ -30,17 +27,15 @@ def main():
     print(f"      Detected language: {transcript['language']}")
     print(f"      Transcript preview: {preview}\n")
 
-    print("[2/3] Running LLM analysis (summary, STAR, scoring) via Llama 3.3 ...")
+    print(f"[2/3] Inferring question, generating ideal answer, and scoring for role '{args.job_role}' ...")
     analysis = analyze_transcript(
         transcript_text=transcript["text"],
-        question=args.question,
-        expected_answer=args.expected,
+        job_role=args.job_role,
     )
 
     report = {
         "audio_file": args.audio_path,
-        "question": args.question,
-        "expected_answer": args.expected,
+        "job_role": args.job_role,
         "transcript": transcript["text"],
         "segments": transcript["segments"],
         "analysis": analysis,

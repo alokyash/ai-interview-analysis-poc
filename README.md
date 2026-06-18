@@ -48,13 +48,16 @@ from today's conversation - this self-recorded clip is your first test sample.
 
 ```bash
 python main.py path/to/your_answer.mp3 \
-  --question "Tell me about a time you had to debug a tricky production issue" \
-  --expected "A strong answer identifies the problem, the diagnostic steps taken, the fix applied, and the measurable outcome." \
-  --out report.json
+  --job-role "DevOps Engineer" \
+  --model-size tiny
 ```
 
-`--question` and `--expected` are optional - without them you still get a transcript, summary,
-and STAR breakdown, just without a relevance score against a specific expected answer.
+`The system automatically:
+
+- Infers the interview question from the candidate's answer
+- Generates an ideal/reference answer based on the selected job role
+- Evaluates the candidate response
+- Produces detailed feedback and scoring
 
 ## What you get back
 
@@ -62,16 +65,31 @@ A `report.json` like:
 
 ```json
 {
-  "transcript": "...",
-  "segments": [{"start": 0.0, "end": 3.2, "text": "..."}],
   "analysis": {
-    "summary": "...",
-    "star": {"situation": "...", "task": "...", "action": "...", "result": "..."},
-    "strengths": ["..."],
-    "concerns": ["..."],
-    "relevance_score": 78,
-    "relevance_reasoning": "...",
-    "filler_word_estimate": "low"
+    "job_role": "DevOps Engineer",
+    "inferred_question": "...",
+    "question_inference_confidence": "Medium",
+    "ideal_answer": "...",
+    "candidate_summary": "...",
+    "comparison_summary": "...",
+    "detected_topics": [...],
+    "evaluation_categories": {
+      "technical_knowledge": 60,
+      "conceptual_understanding": 50,
+      "communication_skills": 70,
+      "problem_solving_ability": 40,
+      "confidence_level": "Medium",
+      "completeness_of_answer": 50
+    },
+    "overall_score": 56,
+    "hiring_recommendation": "Borderline",
+    "interview_readiness": "Needs Practice",
+    "strengths": [...],
+    "weaknesses": [...],
+    "improvement_suggestions": [...],
+    "suggested_learning_topics": [...],
+    "final_interviewer_summary": "...",
+    "detailed_feedback": "..."
   }
 }
 ```
@@ -86,3 +104,48 @@ A `report.json` like:
   session, adding speaker diarization, and wrapping it behind the FastAPI service.
 - No data was sent anywhere paid - Faster-Whisper runs entirely on your machine, and Groq's
   free tier has no cost for this volume of usage.
+## Evaluation Pipeline
+
+Audio / Video
+    ↓
+Faster-Whisper
+    ↓
+Transcript
+    ↓
+Llama 3.3 70B
+    ↓
+Infer Interview Question
+    ↓
+Generate Ideal Answer
+    ↓
+Compare Candidate Answer
+    ↓
+Generate Scores and Feedback
+    ↓
+report.json
+
+## Model Selection
+
+### Faster-Whisper
+Used for speech-to-text transcription.
+
+Reasons:
+- Open source
+- Runs locally
+- No API cost
+- Good accuracy and speed
+
+### Llama 3.3 70B (Groq)
+Used for:
+- Question inference
+- Ideal answer generation
+- Candidate evaluation
+- Feedback generation
+
+Reasons:
+- Strong reasoning capabilities
+- Fast inference through Groq
+- Structured JSON output
+- Suitable for role-based interview evaluation
+
+The architecture is model-agnostic and can be extended to GPT-4o, Claude, Gemini, DeepSeek, or other LLMs.
