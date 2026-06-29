@@ -23,7 +23,7 @@ def main():
 
     print(f"[1/3] Transcribing {args.audio_path} ...")
     transcript = transcribe_audio(args.audio_path, model_size=args.model_size)
-    preview = transcript["text"][:400] + ("..." if len(transcript["text"]) > 400 else "")
+    preview = transcript["text"][:400000] + ("..." if len(transcript["text"]) > 400000 else "")
     print(f"      Detected language: {transcript['language']}")
     print(f"      Transcript preview: {preview}\n")
 
